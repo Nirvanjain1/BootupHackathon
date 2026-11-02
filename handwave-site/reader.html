@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HandWave Reader</title>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/airmouse.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script></head>
+<body><main>
+<h1 data-i18n="reader"></h1>
+<div class="tools">
+<button id="open" class="primary" data-i18n="upload"></button><input id="file" type="file" accept="application/pdf" hidden>
+<button id="prev" data-i18n="prev"></button><span id="info" aria-live="polite">0 / 0</span><button id="next" data-i18n="next"></button>
+<button id="zout" data-i18n="zoomOut"></button><button id="zin" data-i18n="zoomIn"></button>
+<button id="read" data-i18n="readAloud"></button><button id="camBtn" class="primary" data-i18n="cam"></button>
+</div>
+<p>Gesture: <span id="gesture" aria-live="polite">-</span></p>
+<p data-i18n="guide"></p>
+<div id="view"><canvas id="pdf"></canvas></div>
+</main>
+<div id="cam"><video id="v" autoplay muted playsinline></video><canvas id="c"></canvas></div>
+<script type="module" src="js/settings.js"></script>
+<script type="module" src="js/gesture-engine.js"></script>
+<script type="module" src="js/airmouse.js"></script>
+<script type="module" src="js/reader.js"></script>
+</body></html>
