@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HandWave Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css"></head>
+<body><main>
+<h1 data-i18n="games"></h1>
+<div class="tools"><button id="camBtn" class="primary" data-i18n="cam"></button></div>
+<p>Gesture: <span id="gesture" aria-live="polite">-</span> &nbsp; <span data-i18n="score"></span>: <span id="score">0</span></p>
+<canvas id="game" width="400" height="560" style="max-width:100%;border:2px solid var(--line);border-radius:8px" tabindex="0"></canvas>
+</main>
+<div id="cam"><video id="v" autoplay muted playsinline></video><canvas id="c"></canvas></div>
+<script type="module" src="js/settings.js"></script>
+<script type="module" src="js/gesture-engine.js"></script>
+<script type="module" src="js/flappy.js"></script>
+</body></html>
