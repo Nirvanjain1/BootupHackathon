@@ -1,0 +1,6 @@
+/* OWNER: Vedant. Look of the air-mouse cursor, hover highlight and the small control panel. */
+#am-cursor{position:fixed;left:-26px;top:-26px;width:52px;height:52px;border-radius:50%;border:5px solid #ffc233;box-shadow:0 0 0 3px #101820;pointer-events:none;z-index:9999;display:none;background:conic-gradient(rgba(61,214,195,.7) calc(var(--p,0)*360deg),transparent 0)}
+#am-cursor.pinched{background:#ffc233;transform-origin:center}
+.am-hover{outline:4px solid #3dd6c3!important;outline-offset:3px}
+#am-panel{position:fixed;left:16px;bottom:16px;z-index:9998;background:var(--panel,#1b2733);border:2px solid var(--line,#34475a);border-radius:10px;padding:10px;max-width:260px;font-size:.85rem}
+#am-panel p{margin:6px 0 0}
