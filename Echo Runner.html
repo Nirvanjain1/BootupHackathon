@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Echo Runner</title>
+<style>
+:root{--bg:#0b0d12;--fg:#f2f4f8;--ac:#ffd23f;--mut:#aab2c0;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{margin:0;background:var(--bg);color:var(--fg);font:18px/1.55 system-ui,-apple-system,Segoe UI,sans-serif;color-scheme:dark}
+main{max-width:680px;margin:0 auto;padding:16px}
+h1{margin:.2em 0;font-size:1.8rem}
+canvas{width:100%;max-width:100%;border:2px solid #2a3140;border-radius:12px;background:#10141c;touch-action:none}
+button{font:inherit;padding:.7em 1.2em;border-radius:10px;border:2px solid var(--ac);background:var(--ac);color:#111;cursor:pointer;margin:.3em .3em .3em 0}
+button.alt{background:transparent;color:var(--fg);border-color:#556}
+button.alt[aria-pressed="true"]{border-color:var(--ac);color:var(--ac)}
+button:focus-visible{outline:4px solid #fff;outline-offset:2px}
+.stats{display:flex;gap:1.2em;flex-wrap:wrap;font-weight:600;margin:.6em 0}
+#live{min-height:1.6em;color:var(--ac);font-weight:600}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+td,th{border-bottom:1px solid #2a3140;padding:.4em .5em;text-align:left}
+.wrap{overflow-x:auto}
+p,li{color:var(--mut)}
+</style></head>
+<body><main>
+<h1>Echo Runner</h1>
+<p>An audio-first runner. Play with headphones and your eyes closed: every obstacle tells you where it is and what to do through sound.</p>
+<div id="live" role="status" aria-live="polite"></div>
+<div class="stats" aria-hidden="false"><span>Score: <span id="sc">0</span></span><span>Coins: <span id="co">0</span></span><span>Lives: <span id="li">3</span></span><span>Best: <span id="bs">0</span></span></div>
+<canvas id="cv" width="600" height="340" aria-label="Optional visual display of the game"></canvas>
+<div>
+<button id="start">Start game (Space)</button>
+<span role="group" aria-label="Difficulty"><button id="dn" class="alt" aria-pressed="true">Normal (N)</button><button id="dh" class="alt" aria-pressed="false">Hard (H)</button></span>
+<button id="imm" class="alt" aria-pressed="false">Immersive: off (I)</button>
+<button id="pr" class="alt" aria-pressed="false">Practice: off (P)</button>
+<button id="stp" class="alt">Stop practice (Esc)</button>
+<button id="tut" class="alt">Hear tutorial (T)</button>
+<button id="vox" class="alt" aria-pressed="true">Voice: on (V)</button>
+<button id="tst" class="alt">Test sound</button> <span id="au">Audio: not started</span>
+</div>
+<h2>How to play</h2>
+<div class="wrap"><table>
+<tr><th>Sound</th><th>Meaning</th><th>Do this</th><th>Practice</th></tr>
+<tr><td>Low buzzing rumble, from the left, middle or right</td><td>Wall in that lane</td><td>Switch lane (← →)</td><td>Key 1</td></tr>
+<tr><td>Beeps rising in pitch, centred, plus the spoken word “Jump”</td><td>Hurdle</td><td>Jump (↑)</td><td>Key 2</td></tr>
+<tr><td>Tone falling in pitch, centred, plus the spoken word “Duck”</td><td>Low beam</td><td>Duck (↓)</td><td>Key 3</td></tr>
+<tr><td>Sparkling shimmer, from a lane</td><td>Coin</td><td>Be in that lane</td><td>Key 4</td></tr>
+</table></div>
+<p>Practice mode (P) lets you calibrate your ears: obstacles come more slowly, nothing can hurt you, and a soft low thud tells you when you would have been hit. Press Escape to stop. Normal mode has only walls and coins. Hard mode adds hurdles (jump) and low beams (duck). Choose with N or H before starting. Your lane is signalled by beeps: one beep from the left is the left lane, two from the centre is the middle lane, three from the right is the right lane. Louder and higher-pitched means closer. Immersive mode (I) positions sounds relative to you: a sound in your own lane is centred, one lane over is clearly to that side, and two lanes over is fully to that side and a little quieter. Keys: arrows or A/D/W/S. Touch: swipe left, right, up or down; tap to start. You have three lives.</p>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const cv=$('cv'),g=cv.getContext('2d');
+let ctx,master,voice=true,last=0,best=0,diff='normal',immersive=false,practice=false;
+try{best=+localStorage.getItem('echoBest')||0}catch(e){}
+$('bs').textContent=best;
+const s={run:false,lane:1,jump:0,duck:0,lives:3,score:0,coins:0,objs:[],t:0,spawn:1,speed:1};
+const TYPES={
+ block:{wave:'sawtooth',f:110,lfo:7,v:.9,name:'Wall. Rumble from the lane it blocks.',col:'#ff5d5d'},
+ hurdle:{wave:'square',f:350,lfo:8,v:.3,dir:1,name:'Hurdle. Beeps rising in pitch. Jump.',col:'#ffb13b'},
+ overhead:{wave:'triangle',f:1000,lfo:4,v:.6,dir:-1,name:'Low beam. Tone falling in pitch. Duck.',col:'#6fa8ff'},
+ coin:{wave:'sine',f:1500,lfo:16,v:.6,name:'Coin. Shimmer from its lane.',col:'#ffd23f'}
+};
+function say(t){
+ $('live').textContent=t;
+ if(!voice||!window.speechSynthesis)return;
+ try{speechSynthesis.cancel();speechSynthesis.speak(new SpeechSynthesisUtterance(t))}catch(e){}
+}
+function initAudio(){
+ if(!ctx){ctx=new (window.AudioContext||window.webkitAudioContext)();master=ctx.createGain();master.gain.value=1;master.connect(ctx.destination);ctx.onstatechange=audioStatus}
+ if(ctx.state!=='running')ctx.resume().then(audioStatus).catch(()=>{});
+ audioStatus();
+}
+function audioStatus(){$('au').textContent='Audio: '+(ctx?ctx.state:'not started')}
+function tone(f,d,type,vol,pan,f2){
+ const o=ctx.createOscillator(),a=ctx.createGain(),p=ctx.createStereoPanner(),n=ctx.currentTime;
+ o.type=type;o.frequency.setValueAtTime(f,n);if(f2)o.frequency.exponentialRampToValueAtTime(f2,n+d);
+ a.gain.setValueAtTime(vol,n);a.gain.exponentialRampToValueAtTime(.001,n+d);
+ p.pan.value=pan||0;o.connect(a).connect(p).connect(master);o.start(n);o.stop(n+d+.05);
+}
+function noise(d,vol){
+ const b=ctx.createBuffer(1,ctx.sampleRate*d,ctx.sampleRate),x=b.getChannelData(0);
+ for(let i=0;i<x.length;i++)x[i]=(Math.random()*2-1)*(1-i/x.length);
+ const sN=ctx.createBufferSource(),a=ctx.createGain();a.gain.value=vol;sN.buffer=b;sN.connect(a).connect(master);sN.start();
+}
+function makeAudio(type,lane){
+ const T=TYPES[type];
+ const osc=ctx.createOscillator();osc.type=T.wave;osc.frequency.value=T.f;
+ const pulse=ctx.createGain();pulse.gain.value=.5;
+ const lfo=ctx.createOscillator();lfo.frequency.value=T.lfo;
+ const lg=ctx.createGain();lg.gain.value=.5;lfo.connect(lg);lg.connect(pulse.gain);
+ const vol=ctx.createGain();vol.gain.value=0;
+ const pan=ctx.createStereoPanner();pan.pan.value=lane==null?0:(lane-1)*.95;
+ osc.connect(pulse);pulse.connect(vol);vol.connect(pan);pan.connect(master);
+ osc.start();lfo.start();
+ return {osc,lfo,vol,pan,T};
+}
+function stopAudio(a){
+ const n=ctx.currentTime;a.vol.gain.cancelScheduledValues(n);a.vol.gain.setTargetAtTime(0,n,.03);
+ a.osc.stop(n+.2);a.lfo.stop(n+.2);
+}
+function spawn(){
+ const r=Math.random();
+ const type=diff==='hard'?(r<.42?'block':r<.57?'hurdle':r<.72?'overhead':'coin'):(r<.62?'block':'coin');
+ const lane=(type==='block'||type==='coin')?Math.floor(Math.random()*3):null;
+ s.objs.push({type,lane,z:1,done:false,a:makeAudio(type,lane)});
+}
+function resolve(o){
+ o.done=true;
+ let hit=false;
+ if(o.type==='block')hit=s.lane===o.lane;
+ else if(o.type==='hurdle')hit=s.jump<=0;
+ else if(o.type==='overhead')hit=s.duck<=0;
+ else if(s.lane===o.lane){s.coins++;s.score+=25;tone(1568,.12,'sine',.4,(o.lane-1)*.9);setTimeout(()=>s.run&&tone(2093,.25,'sine',.4,(o.lane-1)*.9),90)}
+ if(hit&&practice){tone(140,.3,'triangle',.3,0,90);hit=false}
+ if(hit){
+  s.lives--;noise(.4,.7);tone(120,.4,'sawtooth',.4,0,40);
+  if(s.lives<=0)return over();
+  say(s.lives+(s.lives===1?' life left':' lives left'));
+ }
+ sync();
+}
+function sync(){$('sc').textContent=Math.floor(s.score);$('co').textContent=s.coins;$('li').textContent=practice?'∞':s.lives}
+function over(){
+ s.run=false;s.objs.forEach(o=>stopAudio(o.a));s.objs=[];
+ const sc=Math.floor(s.score);
+ if(sc>best){best=sc;try{localStorage.setItem('echoBest',best)}catch(e){}$('bs').textContent=best}
+ sync();draw();
+ say('Game over. Your score is '+sc+'. Press space to play again.');
+ $('start').textContent='Play again (Space)';
+}
+function start(){
+ initAudio();
+ Object.assign(s,{run:true,lane:1,px:1,jump:0,duck:0,lives:3,score:0,coins:0,objs:[],t:0,spawn:1.2,speed:1});
+ sync();say(practice?'Practice mode. Nothing can hurt you. Press escape to stop.':'Go! You are in the middle lane.');
+ last=performance.now();requestAnimationFrame(loop);
+}
+function loop(ts){
+ if(!s.run)return;
+ const dt=Math.min(.05,(ts-last)/1000);last=ts;
+ s.t+=dt;s.speed=practice?.8:1+Math.min(1.2,s.t/90);
+ s.jump=Math.max(0,s.jump-dt);s.duck=Math.max(0,s.duck-dt);
+ s.px+=(s.lane-s.px)*Math.min(1,dt*5);
+ s.spawn-=dt;
+ if(s.spawn<=0){spawn();s.spawn=practice?2+Math.random()*.6:1.5-Math.min(.6,s.t/120)+Math.random()*.4}
+ s.score+=dt*5;
+ for(const o of s.objs){
+  o.z-=dt*s.speed/2.6;
+  const c=Math.max(0,Math.min(1,1-o.z)),T=o.a.T;
+  let pn=o.lane==null?0:(o.lane-1)*.95,at=1;
+  if(immersive&&o.lane!=null){const d=o.lane-s.px;pn=Math.max(-1,Math.min(1,d*.5));at=1-.225*Math.abs(d)}
+  o.a.pan.pan.setTargetAtTime(pn,ctx.currentTime,.06);
+  o.a.vol.gain.value=(.03+T.v*.5*c*c)*at;
+  o.a.osc.frequency.value=T.dir===-1?T.f*(1-.65*c):T.f*(1+(T.dir?1.5:.45)*c);
+  if(!o.said&&o.z<.42&&(o.type==='hurdle'||o.type==='overhead')){o.said=1;say(o.type==='hurdle'?'Jump!':'Duck!')}
+  if(o.z<=0&&!o.done){resolve(o);if(!s.run)return}
+ }
+ s.objs=s.objs.filter(o=>{if(o.z<-.05){stopAudio(o.a);return false}return true});
+ sync();draw();requestAnimationFrame(loop);
+}
+function move(act){
+ if(!s.run)return;
+ if(act==='L'&&s.lane>0){s.lane--;laneCue()}
+ else if(act==='R'&&s.lane<2){s.lane++;laneCue()}
+ else if(act==='U'&&diff==='hard'&&!s.jump){s.jump=.7;s.duck=0;tone(300,.25,'sine',.35,0,900)}
+ else if(act==='D'&&diff==='hard'&&!s.duck){s.duck=.7;s.jump=0;tone(700,.25,'sine',.35,0,200)}
+ else if(act==='L'||act==='R'){tone(90,.12,'square',.25,act==='L'?-1:1)}
+}
+function laneCue(){const n=s.lane+1,p=(s.lane-1)*.9,f=[440,550,660][s.lane];for(let i=0;i<n;i++)setTimeout(()=>s.run&&tone(f,.07,'sine',.35,p),i*90)}
+function togglePractice(){
+ if(s.run)return;
+ practice=!practice;$('pr').textContent='Practice: '+(practice?'on':'off')+' (P)';$('pr').setAttribute('aria-pressed',practice);
+ $('start').textContent=practice?'Start practice (Space)':'Start game (Space)';
+ say(practice?'Practice mode on. Obstacles come slower and nothing can hurt you. A soft low thud means you would have been hit.':'Practice mode off.');
+}
+function stopPractice(){
+ if(!s.run||!practice)return;
+ s.run=false;s.objs.forEach(o=>stopAudio(o.a));s.objs=[];draw();
+ say('Practice ended. Press space to practise again, or P to switch to a real game.');
+}
+function toggleImm(){
+ if(s.run)return;
+ immersive=!immersive;$('imm').textContent='Immersive: '+(immersive?'on':'off')+' (I)';$('imm').setAttribute('aria-pressed',immersive);
+ say(immersive?'Immersive mode on. Sounds are positioned relative to you.':'Immersive mode off. Sounds are fixed to left, middle and right.');
+}
+function setDiff(d){
+ if(s.run)return;
+ diff=d;$('dn').setAttribute('aria-pressed',d==='normal');$('dh').setAttribute('aria-pressed',d==='hard');
+ say(d==='normal'?'Normal mode: walls and coins.':'Hard mode: walls, coins, hurdles and low beams.');
+}
+function demo(type){
+ initAudio();
+ const lane=type==='block'||type==='coin'?0:null,a=makeAudio(type,lane);
+ const n=ctx.currentTime;a.vol.gain.value=.03+a.T.v*.3;
+ a.osc.frequency.setValueAtTime(a.T.f,n);a.osc.frequency.linearRampToValueAtTime(a.T.dir===-1?a.T.f*.35:a.T.f*(a.T.dir?2.5:1.45),n+1.6);
+ setTimeout(()=>stopAudio(a),1700);
+ say(a.T.name);
+}
+function tutorial(){
+ initAudio();
+ say('Echo Runner. Wear headphones. Sounds come toward you. A low buzzing rumble from the left, middle or right is a wall in that lane: switch lanes with the left and right arrow keys. Beeps that rise in pitch are a hurdle, and you will hear the word Jump: press up. A tone that falls in pitch is a low beam, and you will hear the word Duck: press down. A sparkling shimmer is a coin: move into its lane. Louder means closer. In Normal mode there are only walls and coins. Hard mode adds hurdles and low beams. When you change lane you hear one beep on the left, two in the middle, and three on the right. Press N or H to choose the mode, and I for immersive mode, where sounds are positioned relative to your lane, and P for practice mode, where nothing can hurt you. Press 1 to 4 to practise each sound. Press space to start.');
+}
+function draw(){
+ const W=cv.width,H=cv.height,lx=[W*.2,W*.5,W*.8];
+ g.clearRect(0,0,W,H);
+ g.fillStyle='rgba(255,210,63,.08)';g.fillRect(lx[s.lane]-W*.15,0,W*.3,H);
+ if(practice){g.fillStyle='#7dffb0';g.font='bold 16px system-ui';g.textAlign='left';g.fillText('PRACTICE: nothing can hurt you',10,22)}
+ g.strokeStyle='#2a3140';g.lineWidth=2;
+ for(const x of [W*.35,W*.65]){g.beginPath();g.moveTo(x,0);g.lineTo(x,H);g.stroke()}
+ for(const o of s.objs){
+  const k=1-o.z,y=20+k*(H-100),sz=14+k*34,T=TYPES[o.type];
+  g.fillStyle=T.col;
+  if(o.type==='block')g.fillRect(lx[o.lane]-sz,y,sz*2,sz);
+  else if(o.type==='coin'){g.beginPath();g.arc(lx[o.lane],y,sz*.5,0,7);g.fill()}
+  else if(o.type==='hurdle')g.fillRect(W*.1,y+sz*.95,W*.8,sz*.3);
+  else{g.fillRect(W*.1,y+sz*.4,W*.8,sz*.3);g.fillRect(W*.1,y-sz*.5,8,sz*1.2);g.fillRect(W*.9-8,y-sz*.5,8,sz*1.2)}
+ }
+ const base=H-60,jy=s.jump>0?70:0,ph=s.duck>0?16:48,x=lx[s.lane];
+ g.fillStyle='rgba(255,255,255,.25)';g.beginPath();g.ellipse(x,base+52,s.jump>0?14:24,6,0,0,7);g.fill();
+ g.fillStyle=s.jump>0?'#7dffb0':s.duck>0?'#7dc8ff':'#fff';g.fillRect(x-16,base+50-ph-jy,32,ph);
+ g.fillStyle='#ffd23f';g.font='bold 18px system-ui';g.textAlign='center';g.fillText(['LEFT LANE','MIDDLE LANE','RIGHT LANE'][s.lane],x,H-8);
+ let msg=s.jump>0?'JUMP ↑':s.duck>0?'DUCK ↓':'';
+ for(const o of s.objs)if(o.z<.5&&(o.type==='hurdle'||o.type==='overhead'))msg=o.type==='hurdle'?'JUMP ↑':'DUCK ↓';
+ if(msg){g.fillStyle='#fff';g.font='bold 40px system-ui';g.textAlign='center';g.fillText(msg,W/2,60)}
+}
+addEventListener('keydown',e=>{
+ const k=e.key.toLowerCase();
+ if(['arrowleft','arrowright','arrowup','arrowdown',' '].includes(k))e.preventDefault();
+ if(e.target.tagName==='BUTTON'&&(k===' '||k==='enter'))return;
+ if(k===' '||k==='enter'){if(!s.run)start()}
+ else if(k==='arrowleft'||k==='a')move('L');
+ else if(k==='arrowright'||k==='d')move('R');
+ else if(k==='arrowup'||k==='w')move('U');
+ else if(k==='arrowdown'||k==='s')move('D');
+ else if(k==='t')tutorial();
+ else if(k==='v')toggleVoice();
+ else if(k==='n')setDiff('normal');
+ else if(k==='h')setDiff('hard');
+ else if(k==='i')toggleImm();
+ else if(k==='p')togglePractice();
+ else if(k==='escape')stopPractice();
+ else if(!s.run&&'1234'.includes(k)&&k)demo(['block','hurdle','overhead','coin'][+k-1]);
+});
+function toggleVoice(){voice=!voice;if(!voice&&window.speechSynthesis)speechSynthesis.cancel();$('vox').textContent='Voice: '+(voice?'on':'off')+' (V)';$('vox').setAttribute('aria-pressed',voice)}
+$('start').onclick=()=>{if(!s.run)start()};
+$('tst').onclick=()=>{initAudio();tone(660,.25,'sine',.7,-1);setTimeout(()=>tone(880,.25,'sine',.7,1),300);say('Sound test. You should hear two beeps, left then right.')};
+$('tut').onclick=tutorial;$('vox').onclick=toggleVoice;$('dn').onclick=()=>setDiff('normal');$('dh').onclick=()=>setDiff('hard');$('imm').onclick=toggleImm;$('pr').onclick=togglePractice;$('stp').onclick=stopPractice;
+let tx,ty;
+cv.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+cv.addEventListener('touchend',e=>{
+ const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;
+ if(!s.run){start();return}
+ if(Math.max(Math.abs(dx),Math.abs(dy))<30)return;
+ if(Math.abs(dx)>Math.abs(dy))move(dx<0?'L':'R');else move(dy<0?'U':'D');
+});
+draw();
+</script></body></html>
