@@ -8,8 +8,10 @@
       content="HandWave lets people control a computer with hand gestures. Read documents, practise skills and use the web without a mouse."
     />
     <title>HandWave | Gesture-controlled accessibility</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;700&family=Noto+Sans+Devanagari:wght@400;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/style.css" />
@@ -51,53 +53,28 @@
         </symbol>
       </defs>
     </svg>
+    <header class="top">
+      <div class="top-in">
+        <p class="brand"><svg class="ic" aria-hidden="true"><use href="#i-hand" /></svg><span data-i18n="title">HandWave</span></p>
+        <div id="a11y-slot"></div>
+      </div>
+    </header>
+    <nav class="site-nav" aria-label="Main navigation">
+      <div class="nav-in">
+        <button type="button" class="nav-btn" data-page="home" data-i18n="home"></button>
+        <button type="button" class="nav-btn" data-page="reader" data-i18n="reader"></button>
+        <button type="button" class="nav-btn" data-page="basics" data-i18n="basics"></button>
+        <button type="button" class="nav-btn" data-page="speak" data-i18n="speak"></button>
+        <button type="button" class="nav-btn" data-page="echo" data-i18n="echo"></button>
+        <button type="button" class="nav-btn" data-page="extension" data-i18n="extension"></button>
+      </div>
+    </nav>
     <main id="main">
-      <header>
-        <h1 class="brand" data-i18n="title">HandWave</h1>
-        <p data-i18n="tag"></p>
-      </header>
-      <nav class="site-nav" aria-label="Main navigation">
-        <button
-          type="button"
-          class="nav-btn"
-          data-page="home"
-          data-i18n="home"
-        ></button
-        ><button
-          type="button"
-          class="nav-btn"
-          data-page="reader"
-          data-i18n="reader"
-        ></button
-        ><button
-          type="button"
-          class="nav-btn"
-          data-page="basics"
-          data-i18n="basics"
-        ></button
-        ><button
-          type="button"
-          class="nav-btn"
-          data-page="speak"
-          data-i18n="speak"
-        ></button
-        ><button
-          type="button"
-          class="nav-btn"
-          data-page="echo"
-          data-i18n="echo"
-        ></button
-        ><button
-          type="button"
-          class="nav-btn"
-          data-page="extension"
-          data-i18n="extension"
-        ></button>
-      </nav>
       <section id="home" class="page active">
         <div class="hero">
+          <div>
           <p class="eyebrow" id="greet"></p>
-          <h2 class="hero-title" data-i18n="heroTitle"></h2>
+          <h1 class="hero-title" data-i18n="heroTitle"></h1>
           <p class="hero-text" data-i18n="heroText"></p>
           <div class="tools">
             <button id="homeCamBtn" class="primary" data-i18n="cam">
@@ -109,6 +86,8 @@
               data-i18n="openReader"
             ></a>
           </div>
+          </div>
+          <div class="demo" aria-hidden="true"><span class="demo-btn">Next page</span><span class="demo-ring"></span></div>
         </div>
         <h3 class="section-title" data-i18n="howTitle"></h3>
         <div class="steps">
@@ -173,10 +152,10 @@
         </div>
         <p>Gesture: <span id="readerGesture" aria-live="polite">-</span></p>
         <p class="hint" data-i18n="guide"></p>
-        <h2 style="margin: 16px 0 0; font-size: 1.2rem" data-i18n="cmds">
+        <h2 class="sub" data-i18n="cmds">
           Gesture commands
         </h2>
-        <p class="hint" style="margin: 2px 0" data-i18n="cmdHint">
+        <p class="hint" data-i18n="cmdHint">
           Tap a tile, or hold it to keep scrolling or zooming. Each one does the
           same as its hand gesture.
         </p>
