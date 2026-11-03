@@ -30,7 +30,12 @@ openB.setAttribute("aria-label", "Open air mouse panel");
 const steadyB = document.createElement("button");
 steadyB.className = "am-toggle";
 steadyB.style.marginTop = "8px";
-panel.append(closeB, toggle, steadyB, note);
+const gestB = document.createElement("button");
+gestB.className = "am-toggle";
+gestB.style.marginTop = "8px";
+gestB.dataset.gedit = "1";
+gestB.innerHTML = "<span>Customize gestures</span>";
+panel.append(closeB, toggle, steadyB, gestB, note);
 document.body.append(panel, openB);
 const setMin = (v, quiet) => {
   panel.style.display = v ? "none" : "";

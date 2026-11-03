@@ -11,7 +11,7 @@ Standard computer interfaces assume fine motor control, steady hands and familia
 ## Features
 
 ### Gesture engine and air mouse
-- Real-time hand tracking with seven recognised gestures, held briefly to confirm intent.
+- Real-time hand tracking with ten non-overlapping gestures (the seven MediaPipe poses plus three extra finger-count poses), held briefly to confirm intent. Each action has exactly one gesture, and users can change them with **Customize gestures**; if a new gesture is already in use the two actions swap, so gestures never overlap. Pointing with the index finger is reserved for the air mouse, and a pinch never triggers a gesture command.
 - Air mouse: the index fingertip moves an on-screen pointer and a pinch clicks.
 - Optional hover-to-click for users who cannot pinch.
 - Steady-hand filter with adjustable strength to reduce the effect of tremors.
@@ -65,9 +65,21 @@ The site can also be published with GitHub Pages, which provides the HTTPS conne
 ├── css/
 │   └── style.css     Layout, theme and component styles
 └── js/
-    ├── app.js        Settings, gesture engine, air mouse, reader, speaking practice
-    ├── echo.js       Listening and reaction exercise
-    └── basics.js     Gesture basics checklist
+    ├── app.js            Entry point that loads the modules below
+    ├── translations.js   Interface text for English and Hindi
+    ├── settings.js       Language, contrast, text size and accent colour
+    ├── utils.js          Shared helpers and notifications
+    ├── gesture-engine.js Camera and MediaPipe gesture recognition
+    ├── airmouse.js       Air mouse, steady-hand filter and hover-click
+    ├── gestures.js       Gesture-to-action map and Customize gestures dialog
+    ├── speakaloud.js     Spoken descriptions of controls
+    ├── hud.js            On-screen gesture indicator
+    ├── reader.js         PDF reader and reader gestures
+    ├── speaking-data.js  Word lists, sentences and speaking messages
+    ├── speaking.js       Speaking practice
+    ├── navigation.js     Page routing and keyboard shortcuts
+    ├── echo.js           Listening and reaction exercise
+    └── basics.js         Gesture basics checklist
 ```
 
 ## Known limitations

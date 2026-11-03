@@ -616,9 +616,10 @@
       if (g === prevGesture) return;
       prevGesture = g;
       if (!echoPage.classList.contains("active")) return;
-      if (g === "Victory" && !s.run) start();
-      else if (g === "Open_Palm") move("U");
-      else if (g === "Closed_Fist") move("D");
+      const a = window.GestureMap && window.GestureMap.actionOf(g);
+      if (a === "start" && !s.run) start();
+      else if (a === "jump") move("U");
+      else if (a === "duck") move("D");
     });
   }
 })();

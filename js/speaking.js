@@ -1,5 +1,6 @@
 import { $, toast } from "./utils.js";
 import { GestureEngine } from "./gesture-engine.js";
+import { GestureMap } from "./gestures.js";
 import { lang } from "./settings.js";
 import { WORDS_EN, WORDS_HI, SENT_EN, SENT_HI, SPM } from "./speaking-data.js";
 const isHi = () => Settings.lang === "hi";
@@ -493,12 +494,8 @@ lang.addEventListener("change", () => {
   spBuild();
   spLabel();
 });
-GestureEngine.onGesture((g) => {
-  if (
-    g === "Thumb_Up" &&
-    document.querySelector("#speak").classList.contains("active")
-  )
-    spBegin();
+GestureMap.on("start", () => {
+  if (document.querySelector("#speak").classList.contains("active")) spBegin();
 });
 if (!SR) $("#spStart").disabled = true;
 spBuild();

@@ -1,5 +1,6 @@
 import { $, toast, onReader } from "./utils.js";
 import { GestureEngine } from "./gesture-engine.js";
+import { GestureMap } from "./gestures.js";
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 let pdfDoc = null,
@@ -130,15 +131,10 @@ $("#next").onclick = () => goPage(1);
 $("#zin").onclick = () => zoomPDF(0.2);
 $("#zout").onclick = () => zoomPDF(-0.2);
 $("#read").onclick = readPage;
-const ACTIONS = {
-  Victory: () => goPage(1),
-  Pointing_Up: () => goPage(-1),
-  ILoveYou: readPage,
-};
-const SCROLL = { Thumb_Up: -12, Thumb_Down: 12 };
-GestureEngine.onGesture((g) => {
-  if (onReader() && ACTIONS[g]) ACTIONS[g]();
-});
+// Reader actions come from the shared gesture map (one gesture per action).
+GestureMap.on("nextPage", () => onReader() && goPage(1));
+GestureMap.on("prevPage", () => onReader() && goPage(-1));
+GestureMap.on("readAloud", () => onReader() && readPage());
 const CMDS = {
   next: { once: () => goPage(1) },
   prev: { once: () => goPage(-1) },
@@ -190,23 +186,35 @@ document.querySelectorAll("[data-cmd]").forEach((b) => {
     c.once();
   });
 });
-function scrollWithThumb(g) {
-  const step = g === "Thumb_Up" ? -14 : 14;
+function scrollBy(step) {
   if (onReader() && $("#view").scrollHeight > $("#view").clientHeight + 2) {
     $("#view").scrollTop += step;
   } else {
     window.scrollBy({ top: step, left: 0, behavior: "auto" });
   }
 }
-GestureEngine.onFrame((g, held) => {
+// scrolling works on every page (universal); zoom only in the reader
+GestureMap.whileHeld("scrollUp", 150, () => scrollBy(-14));
+GestureMap.whileHeld("scrollDown", 150, () => scrollBy(14));
+GestureMap.whileHeld("zoomIn", 250, () => onReader() && zoomBy(1.02));
+GestureMap.whileHeld("zoomOut", 250, () => onReader() && zoomBy(1 / 1.02));
+const CMD_ACTION = {
+  next: "nextPage",
+  prev: "prevPage",
+  up: "scrollUp",
+  down: "scrollDown",
+  zin: "zoomIn",
+  zout: "zoomOut",
+  read: "readAloud",
+};
+GestureEngine.onFrame((g) => {
   document
     .querySelectorAll(".cmd")
-    .forEach((b) => b.classList.toggle("on", !!g && b.dataset.g === g));
-  $("#readerGesture").textContent = g ? g.replace("_", " ") : "-";
-  if ((g === "Thumb_Up" || g === "Thumb_Down") && held > 150)
-    scrollWithThumb(g);
-  if (onReader() && held > 250) {
-    if (g === "Open_Palm") zoomBy(1.02);
-    else if (g === "Closed_Fist") zoomBy(1 / 1.02);
-  }
+    .forEach((b) =>
+      b.classList.toggle(
+        "on",
+        !!g && GestureMap.gestureOf(CMD_ACTION[b.dataset.cmd]) === g,
+      ),
+    );
+  $("#readerGesture").textContent = g ? g.replace(/_/g, " ") : "-";
 });
