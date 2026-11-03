@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="HandWave lets people control a computer with hand gestures. Read documents, practise skills and use the web without a mouse."
+    />
+    <title>HandWave | Gesture-controlled accessibility</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  </head>
+  <body data-home="1">
+    <a class="skip" href="#main">Skip to content</a>
+    <svg
+      width="0"
+      height="0"
+      style="position: absolute"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <defs>
+        <symbol id="i-doc" viewBox="0 0 24 24">
+          <path d="M6 3h8l4 4v14H6z" />
+          <path d="M14 3v4h4M9 12h6M9 16h6" />
+        </symbol>
+        <symbol id="i-hand" viewBox="0 0 24 24">
+          <path
+            d="M8 13V6a1.5 1.5 0 013 0v5M11 11V4.5a1.5 1.5 0 013 0V11M14 11V6a1.5 1.5 0 013 0v8c0 4-2 7-6 7-3 0-4.5-1.5-6-4l-2-3a1.5 1.5 0 012.3-1.8L8 13"
+          />
+        </symbol>
+        <symbol id="i-mic" viewBox="0 0 24 24">
+          <rect x="9" y="3" width="6" height="11" rx="3" />
+          <path d="M5 11a7 7 0 0014 0M12 18v3" />
+        </symbol>
+        <symbol id="i-ear" viewBox="0 0 24 24">
+          <path d="M4 14v-2a8 8 0 0116 0v2" />
+          <rect x="3" y="14" width="4" height="6" rx="1.5" />
+          <rect x="17" y="14" width="4" height="6" rx="1.5" />
+        </symbol>
+        <symbol id="i-down" viewBox="0 0 24 24">
+          <path d="M12 4v11M7 11l5 5 5-5M5 20h14" />
+        </symbol>
+        <symbol id="i-arrow" viewBox="0 0 24 24">
+          <path d="M5 12h14M13 6l6 6-6 6" />
+        </symbol>
+      </defs>
+    </svg>
+    <main id="main">
+      <header>
+        <h1 class="brand" data-i18n="title">HandWave</h1>
+        <p data-i18n="tag"></p>
+      </header>
+      <nav class="site-nav" aria-label="Main navigation">
+        <button
+          type="button"
+          class="nav-btn"
+          data-page="home"
+          data-i18n="home"
+        ></button
+        ><button
+          type="button"
+          class="nav-btn"
+          data-page="reader"
+          data-i18n="reader"
+        ></button
+        ><button
+          type="button"
+          class="nav-btn"
+          data-page="basics"
+          data-i18n="basics"
+        ></button
+        ><button
+          type="button"
+          class="nav-btn"
+          data-page="speak"
+          data-i18n="speak"
+        ></button
+        ><button
+          type="button"
+          class="nav-btn"
+          data-page="echo"
+          data-i18n="echo"
+        ></button
+        ><button
+          type="button"
+          class="nav-btn"
+          data-page="extension"
+          data-i18n="extension"
+        ></button>
+      </nav>
+      <section id="home" class="page active">
+        <div class="hero">
+          <p class="eyebrow" id="greet"></p>
+          <h2 class="hero-title" data-i18n="heroTitle"></h2>
+          <p class="hero-text" data-i18n="heroText"></p>
+          <div class="tools">
+            <button id="homeCamBtn" class="primary" data-i18n="cam">
+              Turn on camera</button
+            ><a
+              class="btn"
+              href="#reader"
+              data-go="reader"
+              data-i18n="openReader"
+            ></a>
+          </div>
+        </div>
+        <h3 class="section-title" data-i18n="howTitle"></h3>
+        <div class="steps">
+          <div class="step">
+            <b data-i18n="st1"></b><span data-i18n="st1d"></span>
+          </div>
+          <div class="step">
+            <b data-i18n="st2"></b><span data-i18n="st2d"></span>
+          </div>
+          <div class="step">
+            <b data-i18n="st3"></b><span data-i18n="st3d"></span>
+          </div>
+        </div>
+        <h3 class="section-title" data-i18n="practice"></h3>
+        <p class="section-sub" data-i18n="practiceD"></p>
+        <div class="cards">
+          <a class="card" href="#basics" data-go="basics"
+            ><svg class="ic" aria-hidden="true"><use href="#i-hand" /></svg>
+            <h3 data-i18n="basics"></h3>
+            <span data-i18n="basicsD"></span
+          ></a>
+          <a class="card" href="#speak" data-go="speak"
+            ><svg class="ic" aria-hidden="true"><use href="#i-mic" /></svg>
+            <h3 data-i18n="speak"></h3>
+            <span data-i18n="speakD"></span
+          ></a>
+          <a class="card" href="#echo" data-go="echo"
+            ><svg class="ic" aria-hidden="true"><use href="#i-ear" /></svg>
+            <h3 data-i18n="echo"></h3>
+            <span data-i18n="echoD"></span
+          ></a>
+        </div>
+        <div class="band">
+          <div>
+            <h3 data-i18n="extension"></h3>
+            <p data-i18n="extensionD"></p>
+          </div>
+          <a
+            class="btn primary"
+            href="#extension"
+            data-go="extension"
+            data-i18n="extension"
+          ></a>
+        </div>
+      </section>
+      <section id="reader" class="page">
+        <h1 data-i18n="reader">Document reader</h1>
+        <div class="tools">
+          <button id="open" class="primary" data-i18n="upload">
+            Open a PDF
+          </button>
+          <input id="file" type="file" accept="application/pdf" hidden />
+          <button id="prev" data-i18n="prev">Previous page</button>
+          <span id="info" aria-live="polite">0 / 0</span>
+          <button id="next" data-i18n="next">Next page</button>
+          <button id="zout" data-i18n="zoomOut">Zoom out</button>
+          <button id="zin" data-i18n="zoomIn">Zoom in</button>
+          <button id="read" data-i18n="readAloud">Read aloud</button>
+          <button class="camera-start primary" data-i18n="cam">
+            Turn on camera
+          </button>
+        </div>
+        <p>Gesture: <span id="readerGesture" aria-live="polite">-</span></p>
+        <p class="hint" data-i18n="guide"></p>
+        <h2 style="margin: 16px 0 0; font-size: 1.2rem" data-i18n="cmds">
+          Gesture commands
+        </h2>
+        <p class="hint" style="margin: 2px 0" data-i18n="cmdHint">
+          Tap a tile, or hold it to keep scrolling or zooming. Each one does the
+          same as its hand gesture.
+        </p>
+        <div class="cmds" role="group" aria-label="Reader commands">
+          <button type="button" class="cmd" data-cmd="next" data-g="Victory">
+            <b>Peace</b><span data-i18n="next">Next page</span>
+          </button>
+          <button
+            type="button"
+            class="cmd"
+            data-cmd="prev"
+            data-g="Pointing_Up"
+          >
+            <b>Point</b><span data-i18n="prev">Previous page</span>
+          </button>
+          <button type="button" class="cmd" data-cmd="up" data-g="Thumb_Up">
+            <b>Thumb up</b><span data-i18n="scrollUp">Scroll up</span>
+          </button>
+          <button type="button" class="cmd" data-cmd="down" data-g="Thumb_Down">
+            <b>Thumb down</b><span data-i18n="scrollDown">Scroll down</span>
+          </button>
+          <button type="button" class="cmd" data-cmd="zin" data-g="Open_Palm">
+            <b>Palm</b><span data-i18n="zoomIn">Zoom in</span>
+          </button>
+          <button
+            type="button"
+            class="cmd"
+            data-cmd="zout"
+            data-g="Closed_Fist"
+          >
+            <b>Fist</b><span data-i18n="zoomOut">Zoom out</span>
+          </button>
+          <button type="button" class="cmd" data-cmd="read" data-g="ILoveYou">
+            <b>Three fingers</b><span data-i18n="readAloud">Read aloud</span>
+          </button>
+        </div>
+        <div class="bar" aria-hidden="true"><i id="pgBar"></i></div>
+        <div id="view">
+          <div id="drop">
+            <svg class="ic big" aria-hidden="true"><use href="#i-doc" /></svg
+            ><b>Drag a PDF in here</b><span>or tap "Open a PDF". No rush.</span>
+          </div>
+          <canvas id="pdf"></canvas>
+        </div>
+      </section>
+      <section id="basics" class="page">
+        <h1 data-i18n="basics"></h1>
+        <p class="hint" data-i18n="basicsD"></p>
+        <div class="tools">
+          <button class="camera-start primary" data-i18n="cam">
+            Turn on camera</button
+          ><button id="bsReset" data-i18n="reset"></button>
+        </div>
+        <div class="bs-head">
+          <b id="bsCount"></b>
+          <div class="bar" aria-hidden="true"><i id="bsBar"></i></div>
+        </div>
+        <div id="bsGrid" class="bs-grid"></div>
+        <p id="bsMsg" class="sp-status" role="status"></p>
+      </section>
+      <section id="speak" class="page">
+        <h1 data-i18n="speak">Speaking practice</h1>
+        <p class="hint" data-i18n="speakGuide"></p>
+        <div class="sp-opts" role="group" aria-label="Practice options">
+          <button
+            type="button"
+            class="sp-mode"
+            data-mode="words"
+            aria-pressed="true"
+          >
+            Words
+          </button>
+          <button
+            type="button"
+            class="sp-mode"
+            data-mode="sentences"
+            aria-pressed="false"
+          >
+            Sentences
+          </button>
+          <span style="width: 12px"></span>
+          <button
+            type="button"
+            class="sp-dur"
+            data-dur="30"
+            aria-pressed="true"
+          >
+            30s
+          </button>
+          <button
+            type="button"
+            class="sp-dur"
+            data-dur="0"
+            aria-pressed="false"
+          >
+            No timer
+          </button>
+        </div>
+        <div class="tools">
+          <button type="button" id="spStart" class="primary">
+            Let's practise
+          </button>
+          <button type="button" id="spReset" data-i18n="spReset">
+            Give me new words
+          </button>
+          <button type="button" id="spSkip" data-i18n="spSkip">
+            Skip this one
+          </button>
+          <button class="camera-start primary" data-i18n="cam">
+            Turn on camera
+          </button>
+        </div>
+        <div class="sp-stats">
+          <div class="sp-stat"><b id="spWpm">0</b><span>WPM</span></div>
+          <div class="sp-stat">
+            <b id="spAcc">-</b><span data-i18n="acc">Accuracy</span>
+          </div>
+          <div class="sp-stat">
+            <b id="spWords">0</b><span data-i18n="wordsDone">Words said</span>
+          </div>
+          <div class="sp-stat">
+            <b id="spTime">30s</b><span data-i18n="timeLeft">Time</span>
+          </div>
+          <div class="sp-stat"><b id="spBest">0</b><span>Best WPM</span></div>
+        </div>
+        <div class="sp-meter">
+          <svg class="ic" aria-hidden="true"><use href="#i-mic" /></svg>
+          <div id="spLevel" role="img" aria-label="Voice volume"><i></i></div>
+        </div>
+        <p id="spStatus" class="sp-status" role="status"></p>
+        <div id="spFocus" aria-hidden="true"></div>
+        <div class="bar" aria-hidden="true"><i id="spBar"></i></div>
+        <div id="spBox" tabindex="0" aria-label="Words to speak"></div>
+        <p id="spHeard"></p>
+        <div id="spResult" class="sp-result" aria-live="polite"></div>
+      </section>
+      <section id="echo" class="page">
+        <h1 data-i18n="echo">Listening and reaction</h1>
+        <p>
+          An audio-first exercise for practising reaction and coordination.
+          Every obstacle announces where it is and what to do through sound, so
+          it works with your eyes closed and headphones on.
+        </p>
+        <p>
+          Gesture controls: move your hand to the left, centre or right of the
+          camera view to change lane. Show a peace sign to start. In hard mode,
+          an open palm jumps and a closed fist ducks. Keyboard controls also
+          work.
+        </p>
+        <div id="live" role="status" aria-live="polite"></div>
+        <div class="stats" aria-hidden="false">
+          <span>Score: <span id="sc">0</span></span
+          ><span>Coins: <span id="co">0</span></span
+          ><span>Lives: <span id="li">3</span></span
+          ><span>Best: <span id="bs">0</span></span>
+        </div>
+        <canvas
+          id="cv"
+          width="600"
+          height="340"
+          aria-label="Optional visual display of the game"
+        ></canvas>
+        <div>
+          <button id="start">Start game (Space)</button>
+          <span role="group" aria-label="Difficulty"
+            ><button id="dn" class="alt" aria-pressed="true">Normal (N)</button
+            ><button id="dh" class="alt" aria-pressed="false">
+              Hard (H)
+            </button></span
+          >
+          <button id="imm" class="alt" aria-pressed="true">
+            Immersive: on (I)
+          </button>
+          <button id="pr" class="alt" aria-pressed="false">
+            Practice: off (P)
+          </button>
+          <button id="stp" class="alt">Stop practice (Esc)</button>
+          <button id="tut" class="alt">Hear tutorial (T)</button>
+          <button id="vox" class="alt" aria-pressed="true">
+            Voice: on (V)
+          </button>
+          <button id="tst" class="alt">Test sound</button>
+          <span id="au">Audio: not started</span>
+        </div>
+        <h2>How to play</h2>
+        <div class="wrap">
+          <table>
+            <tr>
+              <th>Sound</th>
+              <th>Meaning</th>
+              <th>Do this</th>
+              <th>Practice</th>
+            </tr>
+            <tr>
+              <td>Low buzzing rumble, from the left, middle or right</td>
+              <td>Wall in that lane</td>
+              <td>Switch lane (← →)</td>
+              <td>Key 1</td>
+            </tr>
+            <tr>
+              <td>
+                Beeps rising in pitch, centred, plus the spoken word “Jump”
+              </td>
+              <td>Hurdle</td>
+              <td>Jump (↑)</td>
+              <td>Key 2</td>
+            </tr>
+            <tr>
+              <td>
+                Tone falling in pitch, centred, plus the spoken word “Duck”
+              </td>
+              <td>Low beam</td>
+              <td>Duck (↓)</td>
+              <td>Key 3</td>
+            </tr>
+            <tr>
+              <td>Sparkling shimmer, from a lane</td>
+              <td>Coin</td>
+              <td>Be in that lane</td>
+              <td>Key 4</td>
+            </tr>
+          </table>
+        </div>
+        <p>
+          Practice mode (P) lets you calibrate your ears: obstacles come more
+          slowly, nothing can hurt you, and a soft low thud tells you when you
+          would have been hit. Press Escape to stop. Normal mode has only walls
+          and coins. Hard mode adds hurdles (jump) and low beams (duck). Choose
+          with N or H before starting. Your lane is signalled by beeps: one beep
+          from the left is the left lane, two from the centre is the middle
+          lane, three from the right is the right lane. Louder and
+          higher-pitched means closer. Sounds use 3D spatial audio, so with
+          headphones you can hear walls and coins sweep in from the left or
+          right as they approach. Immersive mode (I) is on by default and
+          positions sounds relative to you: a sound in your own lane is centred,
+          a sound one lane over plays only in that ear, and a sound two lanes
+          over plays in that same ear too but sounds duller, quieter and pulses
+          at half speed. Keys: arrows or A/D/W/S. Touch: swipe left, right, up
+          or down; tap to start. You have three lives.
+        </p>
+      </section>
+      <section id="extension" class="page">
+        <h1 data-i18n="extension"></h1>
+        <p class="hint" data-i18n="extensionD"></p>
+        <div class="cards">
+          <div class="card">
+            <svg class="ic" aria-hidden="true"><use href="#i-hand" /></svg>
+            <h3>Air mouse everywhere</h3>
+            <span
+              >Move the pointer and click on any page with your index finger and
+              a pinch.</span
+            >
+          </div>
+          <div class="card">
+            <svg class="ic" aria-hidden="true"><use href="#i-doc" /></svg>
+            <h3>Scroll and navigate</h3>
+            <span
+              >Scroll, go back and forward, and switch tabs with the same
+              gestures you practised here.</span
+            >
+          </div>
+          <div class="card">
+            <svg class="ic" aria-hidden="true"><use href="#i-ear" /></svg>
+            <h3>Private by design</h3>
+            <span
+              >Hand tracking runs inside the browser. No video is recorded or
+              uploaded.</span
+            >
+          </div>
+        </div>
+        <div class="tools">
+          <a
+            id="extDl"
+            class="btn primary disabled"
+            role="link"
+            aria-disabled="true"
+            data-i18n="extDl"
+          ></a>
+        </div>
+        <p class="hint">
+          The extension is in development. This button will link to the download
+          once the first release is ready.
+        </p>
+      </section>
+    </main>
+    <div id="cam">
+      <video id="v" autoplay muted playsinline></video><canvas id="c"></canvas>
+    </div>
+    <script type="module" src="js/app.js"></script>
+    <script defer src="js/echo.js"></script>
+    <script defer src="js/basics.js"></script>
+  </body>
+</html>
