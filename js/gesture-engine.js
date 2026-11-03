@@ -10,6 +10,21 @@ const MODEL =
 const frameCallbacks = [],
   gestureCallbacks = [],
   landmarkCallbacks = [];
+const D = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+// Landmark-based recognition of extra hand shapes MediaPipe does not name.
+function extraGesture(L) {
+  const size = D(L[0], L[9]) || 1,
+    up = (tip, pip) => D(L[tip], L[0]) > D(L[pip], L[0]) * 1.1,
+    idx = up(8, 6),
+    mid = up(12, 10),
+    ring = up(16, 14),
+    pinky = up(20, 18),
+    thumb = D(L[4], L[5]) > size * 0.6 && D(L[4], L[17]) > D(L[3], L[17]);
+  if (idx && mid && ring && !pinky && !thumb) return "Three_Fingers";
+  if (idx && mid && ring && pinky && !thumb) return "Four_Fingers";
+  if (pinky && !idx && !mid && !ring) return thumb ? "Call_Me" : "Pinky_Up";
+  return null;
+}
 let current = null,
   since = 0,
   fired = false,
@@ -18,6 +33,7 @@ let current = null,
   started = false;
 export const GestureEngine = (window.GestureEngine = {
   holdMs: 450,
+  pinching: false,
   minScore: 0.5,
   onFrame: (f) => frameCallbacks.push(f),
   onLandmarks: (f) => landmarkCallbacks.push(f),
@@ -61,14 +77,22 @@ export const GestureEngine = (window.GestureEngine = {
             color: "#ffc233",
             radius: 3,
           });
+          const L = result.landmarks[0],
+            pd = D(L[4], L[8]) / (D(L[0], L[9]) || 1);
+          // a pinch is the air-mouse click, never a gesture command
+          GestureEngine.pinching = GestureEngine.pinching ? pd < 0.5 : pd < 0.34;
           const candidate = result.gestures[0] && result.gestures[0][0];
-          if (
-            candidate &&
-            candidate.score > GestureEngine.minScore &&
-            candidate.categoryName !== "None"
-          )
-            g = candidate.categoryName;
-        }
+          if (!GestureEngine.pinching) {
+            g = extraGesture(L);
+            if (
+              !g &&
+              candidate &&
+              candidate.score > GestureEngine.minScore &&
+              candidate.categoryName !== "None"
+            )
+              g = candidate.categoryName;
+          }
+        } else GestureEngine.pinching = false;
         if (g) seen = now;
         if (g !== current && !(g === null && now - seen < 300)) {
           current = g;
