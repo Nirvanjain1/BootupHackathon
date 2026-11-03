@@ -1,12 +1,31 @@
 # HandWave
 
-**Gesture-controlled access to documents, practice tools and the web.**
+**A more welcoming way to use a computer, powered by a webcam.**
 
-HandWave turns an ordinary webcam into an input device. People who find a mouse, keyboard or touchscreen difficult to use can read documents, practise essential skills and navigate with simple hand gestures. The project was built by Team Codex for the *Build for Everyone* hackathon theme.
+HandWave turns an ordinary webcam into an input device. A person can point with a finger, click with a pinch or dwell, and use simple gestures to read a PDF and practise speaking and listening. Spoken cues, adjustable visuals, keyboard controls, and English/Hindi text offer multiple ways into the same experience. The project was built by Team Codex for the *Build for Everyone* hackathon theme.
+
+> **Our idea:** accessibility should be a choice of interaction, not a separate version of the product. HandWave lets people begin with the method that works for them and build confidence at their own pace.
 
 ## Problem
 
-Standard computer interfaces assume fine motor control, steady hands and familiarity with pointing devices. This excludes people with limited hand mobility or tremors, people with low vision, and first-time technology users. HandWave offers an alternative input method that requires only a camera and a hand.
+Standard computer interfaces often assume precise clicks, steady hands, readable small text, and prior knowledge of icons and menus. Those assumptions can make a simple task feel difficult or impossible. HandWave combines alternative input, audible feedback, adaptable display settings, and guided practice in one browser experience.
+
+## Who it helps and how
+
+| Situation | HandWave use case |
+|---|---|
+| Fine motor difficulty, tremors, or an uncomfortable grip | Move the pointer by pointing, choose pinch or hover-to-click, and adjust the steady-hand filter. Gesture commands reduce the need for precise targeting. |
+| Limited ability to use a mouse or touchscreen | Turn PDF pages, scroll, zoom, and start read-aloud with hand gestures or large on-screen controls. Gestures can be reassigned to poses that feel easier. |
+| Low vision or reading fatigue | Increase text size and contrast, hear descriptions of controls under the pointer, and have PDF text read aloud. The listening exercise uses spatial audio rather than relying on visual cues alone. |
+| Speech practice or confidence building | Practise words and sentences in English or Hindi with live recognition, accuracy, and pace feedback. |
+| Unfamiliarity with computers or new interfaces | Start with a guided gesture checklist, see the detected gesture on screen, and use clear, repeatable actions before trying the reader and practice tools. |
+| Different access needs on a shared device | Switch between hand gestures, on-screen buttons, and keyboard controls; change language and display settings without changing hardware. |
+
+These are possible uses, not claims of suitability for every disability. The current prototype works within the HandWave site; controlling arbitrary websites is a planned browser-extension feature.
+
+## Why this matters in a demo
+
+One webcam supports a complete learning path: **learn a gesture → use it to navigate → read a real document → practise communication and listening.** The same actions remain available through visible controls and keyboard shortcuts, so a user can change input methods as their needs change.
 
 ## Features
 
@@ -33,7 +52,7 @@ Standard computer interfaces assume fine motor control, steady hands and familia
 
 ## Privacy
 
-Video is processed locally in the browser. No camera frames, audio or documents are uploaded or stored by this project.
+Hand tracking and PDF rendering run in the browser; this project does not upload camera frames or documents to its own server. Speech recognition uses the browser's Web Speech API, whose processing and network behavior depend on the browser. The interface stores preferences and practice progress locally in the browser.
 
 ## Technology
 
