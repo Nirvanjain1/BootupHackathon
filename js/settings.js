@@ -1,10 +1,12 @@
 import { T } from "./translations.js";
 import { toast } from "./utils.js";
-let S = { lang: "en", hc: false, fs: 18, accent: "#ffc233" };
+let S = { lang: "en", hc: false, fs: 18, accent: "#8b9cff" };
 const sw = [];
 try {
   S = { ...S, ...JSON.parse(localStorage.getItem("hw_set")) };
 } catch (e) {}
+const OLD = { "#ffc233": "#8b9cff", "#3dd6c3": "#4fd8c4", "#ff7ab6": "#ff8fb8", "#6cb6ff": "#8b9cff", "#8be35a": "#a6e46b" };
+if (OLD[S.accent]) S.accent = OLD[S.accent];
 const save = () => {
   try {
     localStorage.setItem("hw_set", JSON.stringify(S));
@@ -77,11 +79,11 @@ add(
   "Larger text",
 );
 [
-  ["#ffc233", "Amber"],
-  ["#3dd6c3", "Teal"],
-  ["#ff7ab6", "Pink"],
-  ["#6cb6ff", "Blue"],
-  ["#8be35a", "Green"],
+  ["#8b9cff", "Periwinkle"],
+  ["#4fd8c4", "Aqua"],
+  ["#ff8fb8", "Rose"],
+  ["#ffc857", "Sun"],
+  ["#a6e46b", "Lime"],
 ].forEach(([c, n]) => {
   const b = add(
     "button",
@@ -97,10 +99,10 @@ add(
   );
   b.className = "swatch";
   b.dataset.c = c;
-  b.style.background = c;
+  b.style.setProperty("--c", c);
   sw.push(b);
 });
-document.body.prepend(bar);
+(document.getElementById("a11y-slot") || document.body).append(bar);
 apply();
 window.Settings = {
   t: t,

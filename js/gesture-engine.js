@@ -71,10 +71,10 @@ export const GestureEngine = (window.GestureEngine = {
           drawing.drawConnectors(
             result.landmarks[0],
             GestureRecognizer.HAND_CONNECTIONS,
-            { color: "#3dd6c3", lineWidth: 3 },
+            { color: "#4fd8c4", lineWidth: 3 },
           );
           drawing.drawLandmarks(result.landmarks[0], {
-            color: "#ffc233",
+            color: "#8b9cff",
             radius: 3,
           });
           const L = result.landmarks[0],
