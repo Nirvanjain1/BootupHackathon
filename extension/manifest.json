@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "HandWave",
+  "version": "0.4.0",
+  "description": "Local hand gestures, air pointer, contrast, page zoom and read aloud.",
+  "permissions": [
+    "storage",
+    "scripting",
+    "tabs",
+    "tts",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Open HandWave controls"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  },
+  "minimum_chrome_version": "116",
+  "side_panel": {
+    "default_path": "controller.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "page-menu.js",
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}
