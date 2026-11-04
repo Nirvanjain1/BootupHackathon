@@ -1,3 +1,4 @@
+import { speechLang } from "./languages.js";
 import { $, toast, onReader } from "./utils.js";
 import { GestureEngine } from "./gesture-engine.js";
 import { GestureMap } from "./gestures.js";
@@ -91,7 +92,7 @@ export async function readPage() {
   const utterance = new SpeechSynthesisUtterance(
     content.items.map((i) => i.str).join(" "),
   );
-  utterance.lang = Settings.lang === "hi" ? "hi-IN" : "en-US";
+  utterance.lang = speechLang(Settings.lang);
   speechSynthesis.speak(utterance);
 }
 $("#open").onclick = () => $("#file").click();
