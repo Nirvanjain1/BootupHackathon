@@ -2,9 +2,9 @@ import { $, toast } from "./utils.js";
 import { GestureEngine } from "./gesture-engine.js";
 import { GestureMap } from "./gestures.js";
 import { lang } from "./settings.js";
-import { WORDS_EN, WORDS_HI, SENT_EN, SENT_HI, SPM } from "./speaking-data.js";
-const isHi = () => Settings.lang === "hi";
-const M = (k) => SPM[isHi() ? "hi" : "en"][k];
+import { WORDS_EN, SENT_EN, WORDS, SENT, SPM } from "./speaking-data.js";
+import { speechLang } from "./languages.js";
+const M = (k) => (SPM[Settings.lang] || {})[k] || SPM.en[k];
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 const sp = {
   mode: "words",
@@ -36,7 +36,7 @@ const norm = (w) =>
     .replace(/[.,!?।;:"'“”‘’()\-–—…]/g, "")
     .trim();
 function genWords(n) {
-  const pool = isHi() ? WORDS_HI : WORDS_EN,
+  const pool = WORDS[Settings.lang] || WORDS_EN,
     out = [];
   let last = "";
   while (out.length < n) {
@@ -49,7 +49,7 @@ function genWords(n) {
   return out;
 }
 function genSentences(n) {
-  const pool = isHi() ? SENT_HI : SENT_EN,
+  const pool = SENT[Settings.lang] || SENT_EN,
     out = [];
   let bag = [];
   while (out.length < n) {
@@ -273,7 +273,7 @@ function showResult() {
   }
   res.classList.add("show");
   if (isBest)
-    toast(isHi() ? "नया रिकॉर्ड!" : "A new personal best. Well done!");
+    toast(Settings.lang === "en" ? "A new personal best. Well done!" : M("rb"));
 }
 export function spStop(show) {
   if (!sp.running) return;
@@ -360,7 +360,7 @@ function startRec() {
   rec.continuous = true;
   rec.interimResults = true;
   rec.maxAlternatives = 1;
-  rec.lang = isHi() ? "hi-IN" : "en-US";
+  rec.lang = speechLang(Settings.lang);
   sp.recStart = performance.now();
   rec.onstart = () => {
     sp.rid++;

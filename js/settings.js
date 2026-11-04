@@ -1,5 +1,6 @@
 import { T } from "./translations.js";
 import { toast } from "./utils.js";
+import { LANGS } from "./languages.js";
 let S = { lang: "en", hc: false, fs: 18, accent: "#8b9cff" };
 const sw = [];
 try {
@@ -37,10 +38,7 @@ const add = (tag, fn, key, txt, label) => {
 };
 export const lang = add("select");
 lang.setAttribute("aria-label", "Language");
-[
-  ["en", "English"],
-  ["hi", "हिन्दी"],
-].forEach(([v, l]) => lang.add(new Option(l, v)));
+Object.entries(LANGS).forEach(([v, o]) => lang.add(new Option(o.label, v)));
 lang.value = S.lang;
 lang.onchange = () => {
   S.lang = lang.value;
@@ -114,10 +112,6 @@ function greet() {
   const e = document.querySelector("#greet");
   if (!e) return;
   const h = new Date().getHours(),
-    hi = S.lang === "hi";
-  e.textContent = hi
-    ? (h < 12 ? "सुप्रभात" : h < 17 ? "नमस्ते" : "शुभ संध्या") +
-      "। आज आप क्या करना चाहेंगे?"
-    : (h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening") +
-      ". What would you like to do?";
+    g = (LANGS[S.lang] || LANGS.en).g;
+  e.textContent = (h < 12 ? g[0] : h < 17 ? g[1] : g[2]) + g[3];
 }

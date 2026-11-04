@@ -1,4 +1,5 @@
 import { onGamePage } from "./utils.js";
+import { speechLang } from "./languages.js";
 let speakOn = true;
 try {
   speakOn = localStorage.getItem("hw_speak") !== "0";
@@ -80,7 +81,7 @@ export function announce(el, fromHover) {
   try {
     if (ours) speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = Settings.lang === "hi" ? "hi-IN" : "en-US";
+    u.lang = speechLang(Settings.lang);
     u.rate = 1.05;
     u.onstart = () => {
       ours = true;
