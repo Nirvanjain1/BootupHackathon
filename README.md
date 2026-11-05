@@ -93,7 +93,7 @@ Hand tracking runs in the side panel using the bundled MediaPipe files in `exten
 - The pointer exists inside the web page and cannot reach the browser toolbar or the side panel.
 - Native dropdown menus and file pickers still need the regular mouse or keyboard.
 - The side panel must stay open to keep the camera running.
-- Automated tests use mocked browser APIs. Camera, visual and audio behaviour should be verified on each device.
+- Automated tests use mocked browser APIs and are complemented by manual testing of the loaded extension. Results can still vary with the device, lighting and camera, so check each new setup.
 
 ## Privacy
 
@@ -172,7 +172,7 @@ node menu-tests.cjs
 node qol-tests.cjs
 ```
 
-These cover routing, pointer behaviour, pinch timing, menu state and saved settings. They do not replace a manual check with a camera on a real device.
+These cover routing, pointer behaviour, pinch timing, menu state and saved settings. They are complemented by manual testing of the loaded extension with a camera, which should be repeated on each new device.
 
 ## Known limitations
 
