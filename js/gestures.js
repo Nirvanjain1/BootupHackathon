@@ -31,13 +31,13 @@ export const ACTIONS = [
   ["prevPage", "Previous page", "Three_Fingers"],
   ["zoomIn", "Zoom in", "Open_Palm"],
   ["zoomOut", "Zoom out", "Closed_Fist"],
-  ["readAloud", "Read aloud", "ILoveYou"],
-  ["start", "Start / stop (speaking, game)", "Four_Fingers"],
+  ["readAloud", "Read aloud", "Four_Fingers"],
+  ["start", "Start / stop (speaking, game)", "ILoveYou"],
   ["jump", "Jump (listening game, hard mode)", "Pinky_Up"],
   ["duck", "Duck (listening game, hard mode)", "Call_Me"],
 ];
 const DEFAULTS = Object.fromEntries(ACTIONS.map(([a, , g]) => [a, g]));
-const KEY = "hw_gmap";
+const KEY = "hw_gmap_v2"; // new key so the swapped defaults apply to everyone
 let map = { ...DEFAULTS };
 try {
   const saved = JSON.parse(localStorage.getItem(KEY));
