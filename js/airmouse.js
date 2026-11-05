@@ -3,8 +3,9 @@ import { GestureEngine } from "./gesture-engine.js";
 import { speakB, announce, hoverSpeak } from "./speakaloud.js";
 const ZONE = { x0: 0.2, x1: 0.8, y0: 0.15, y1: 0.75 },
   SMOOTH = 0.25,
-  PINCH_ON = 0.34,
-  PINCH_OFF = 0.5,
+  LOCK_ON = 0.45, // half pinch: lock the cursor and snap to the nearest button
+  LOCK_OFF = 0.55,
+  PINCH_ON = 0.28, // full pinch: actually click
   DWELL_MS = 1200;
 let dwell = false;
 try {
@@ -73,7 +74,8 @@ const clamp = (v) => Math.min(1, Math.max(0, v)),
   SELECTABLE = "button,a,select,input,textarea,canvas,.card,[onclick]";
 let px = innerWidth / 2,
   py = innerHeight / 2,
-  pinched = false,
+  pinched = false, // cursor locked (half or full pinch)
+  clicked = false, // full pinch already clicked during this lock
   hovered = null,
   dwellTarget = null,
   dwellStart = 0,
@@ -138,6 +140,39 @@ let cx = px,
   cursor.style.transform =
     "translate3d(" + cx.toFixed(1) + "px," + cy.toFixed(1) + "px,0)";
 })(performance.now());
+// Snap-to-button: when the half pinch locks the cursor, pull it to the nearest
+// real control within SNAP_R pixels. Only used for deliberate UI clicking:
+// never during the listening game, and never when the cursor is over a canvas
+// (PDF page), so it cannot hijack aiming.
+const SNAP_SEL =
+    "button,a[href],input:not([type=hidden]),select,textarea,[role=button],.card,[onclick]",
+  SNAP_R = 90;
+function snapToControl() {
+  const here = document.elementFromPoint(px, py);
+  if (here && (here.closest(SNAP_SEL) || here.closest("canvas"))) return;
+  let best = null,
+    bd = SNAP_R;
+  document.querySelectorAll(SNAP_SEL).forEach((el) => {
+    if (el.disabled || el.closest("[hidden],[inert]")) return;
+    const r = el.getBoundingClientRect();
+    if (r.width < 4 || r.height < 4 || r.width * r.height > innerWidth * innerHeight * 0.4) return;
+    const d = Math.hypot(
+      Math.max(r.left - px, 0, px - r.right),
+      Math.max(r.top - py, 0, py - r.bottom),
+    );
+    if (d >= bd) return;
+    const mx = r.left + r.width / 2,
+      my = r.top + r.height / 2,
+      top = document.elementFromPoint(mx, my);
+    if (!top || !(top === el || el.contains(top))) return; // hidden or covered
+    best = { el, mx, my };
+    bd = d;
+  });
+  if (best) {
+    px = best.mx;
+    py = best.my;
+  }
+}
 function clickAt(x, y) {
   const el = document.elementFromPoint(x, y);
   if (!el) return;
@@ -170,8 +205,10 @@ GestureEngine.onLandmarks((L) => {
     gone = false;
   }
   if (!cfg) {
-    px += (tx - px) * SMOOTH;
-    py += (ty - py) * SMOOTH;
+    if (!pinched) {
+      px += (tx - px) * SMOOTH;
+      py += (ty - py) * SMOOTH;
+    }
     fInit = false;
   } else if (!pinched) {
     const dt = Math.min(0.1, Math.max(0.005, (now - fLast) / 1e3));
@@ -212,10 +249,11 @@ GestureEngine.onLandmarks((L) => {
   }
   const size = Math.hypot(L[0].x - L[9].x, L[0].y - L[9].y) || 1,
     dist = Math.hypot(tip.x - thumb.x, tip.y - thumb.y) / size;
-  if (!pinched && dist < PINCH_ON) {
+  if (!pinched && dist < LOCK_ON) {
+    // half pinch: lock the cursor and snap to the nearest button. No click yet.
     pinched = true;
+    clicked = false;
     cursor.classList.add("pinched");
-    document.dispatchEvent(new CustomEvent("hw-pinch"));
     if (steadyLvl > 0) {
       const h = hist.find((e) => e.t >= now - 150);
       if (h) {
@@ -223,13 +261,21 @@ GestureEngine.onLandmarks((L) => {
         py = h.y;
       }
     }
+    if (!onGamePage()) snapToControl();
+  }
+  if (pinched && !clicked && dist < PINCH_ON) {
+    // full pinch: click once at the locked position
+    clicked = true;
+    document.dispatchEvent(new CustomEvent("hw-pinch"));
     if (onGamePage()) {
       const el = document.elementFromPoint(px, py),
         ctl = el && el.closest("button,a,select,input,.card");
       if (ctl) clickAt(px, py);
     } else clickAt(px, py);
-  } else if (pinched && dist > PINCH_OFF) {
+  }
+  if (pinched && dist > LOCK_OFF) {
     pinched = false;
+    clicked = false;
     cursor.classList.remove("pinched");
   }
   let progress = 0;
