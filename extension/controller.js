@@ -12,7 +12,7 @@ const saved=await chrome.storage.local.get(['map','pointer','dwell','smooth','ho
 for(const k of Object.keys(defaults))if(Object.hasOwn(actions,saved.map?.[k]))map[k]=saved.map[k];
 for(const key of ['pointer','dwell','sound'])if(typeof saved[key]==='boolean')$(key).checked=saved[key];
 for(const key of ['smooth','hold'])if(Number.isFinite(+saved[key]))$(key).value=saved[key];
-for(const pose of Object.keys(defaults)){const label=document.createElement('label');label.textContent=pose.replaceAll('_',' ');const select=document.createElement('select');for(const [v,t] of Object.entries(actions))select.add(new Option(t,v));select.value=map[pose];select.onchange=()=>{map[pose]=select.value;chrome.storage.local.set({map})};label.append(select);$('maps').append(label)}
+for(const pose of Object.keys(defaults)){const label=document.createElement('label');label.textContent=({ILoveYou:'Thumb, index & little finger out',Thumb_Up:'Thumbs up',Thumb_Down:'Thumbs down',Victory:'Peace sign',Open_Palm:'Open palm',Closed_Fist:'Closed fist'})[pose]||pose.replaceAll('_',' ');const select=document.createElement('select');for(const [v,t] of Object.entries(actions))select.add(new Option(t,v));select.value=map[pose];select.onchange=()=>{map[pose]=select.value;chrome.storage.local.set({map})};label.append(select);$('maps').append(label)}
 for(const key of ['pointer','dwell','smooth','hold','size','sound','preset'])$(key).onchange=()=>chrome.storage.local.set({[key]:$(key).type==='checkbox'?$(key).checked:$(key).value});
 async function message(m){try{const r=await chrome.runtime.sendMessage({...m,windowId:panelWindow.id});if(!r?.ok){$('status').textContent=r?.error||'No response'}else if(r.tabId){if(activeTarget!==r.tabId){activeTarget=r.tabId;last=null;since=0;fired=false;pinchGate.reset()} $('status').textContent=(r.pointerVisible?'Pointer delivered · ':'Connected · ')+(r.title||'current webpage')}if(r?.menuOpen!==undefined)menuOpen=r.menuOpen;if(r?.scanning!==undefined)menuScanning=r.scanning;if(r?.clicked)clickSound();return r}catch(e){$('status').textContent=e.message}}
 $('testPointer').onclick=()=>message({type:'frame',hand:{x:.5,y:.5,click:false,pinched:false},pointer:true,test:true,smooth:.24});
@@ -49,7 +49,7 @@ $('start').onclick=async()=>{
  const raw=!pinched&&candidate?.score>.6?candidate.categoryName:null;
  const g=menuPose?'HandWave_Menu':paused?(raw==='Open_Palm'?'Wake':null):candidate?.categoryName==='Closed_Fist'&&candidate.score>.6&&menuScanning?'Scan_Select':menuOpen?(raw&&['scrollUp','scrollDown'].includes(map[raw])?raw:null):(raw&&map[raw]?raw:null);
      if(g!==last){last=g;since=now;fired=false}const hold=g==='Wake'?1200:Math.max(600,Math.min(3000,+$('hold').value||700));
-     $('gesture').textContent=g?g.replaceAll('_',' ')+' '+Math.min(100,Math.round((now-since)/hold*100))+'%':'Point / pinch';
+     $('gesture').textContent=g?(({ILoveYou:'Thumb, index & little finger out',Thumb_Up:'Thumbs up',Thumb_Down:'Thumbs down',Victory:'Peace sign',Open_Palm:'Open palm',Closed_Fist:'Closed fist',Pointing_Up:'Pointing'})[g]||g.replaceAll('_',' '))+' '+Math.min(100,Math.round((now-since)/hold*100))+'%':'Point / pinch';
      if(g&&!fired&&now-since>=hold){fired=true;if(g==='HandWave_Menu'){menuOpen=!menuOpen;menuRequest=menuOpen}else if(g==='Wake'){setPaused(false)}else if(g==='Scan_Select'){await message({type:'action',action:'scanSelect'})}else if(map[g]!=='none')await action(map[g])}
     }
    }}catch(e){stop();$('status').textContent=e.message;return}raf=requestAnimationFrame(loop);

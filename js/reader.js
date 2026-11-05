@@ -1,7 +1,7 @@
 import { speechLang } from "./languages.js";
 import { $, toast, onReader } from "./utils.js";
 import { GestureEngine } from "./gesture-engine.js";
-import { GestureMap } from "./gestures.js";
+import { GestureMap, gestureName } from "./gestures.js";
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 let pdfDoc = null,
@@ -217,5 +217,5 @@ GestureEngine.onFrame((g) => {
         !!g && GestureMap.gestureOf(CMD_ACTION[b.dataset.cmd]) === g,
       ),
     );
-  $("#readerGesture").textContent = g ? g.replace(/_/g, " ") : "-";
+  $("#readerGesture").textContent = g ? gestureName(g) : "-";
 });

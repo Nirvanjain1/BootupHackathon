@@ -1,4 +1,5 @@
 import { GestureEngine } from "./gesture-engine.js";
+import { gestureName } from "./gestures.js";
 const hud = document.createElement("div");
 hud.id = "hud";
 hud.innerHTML = '<span class="n"></span><i class="hb"></i>';
@@ -9,7 +10,7 @@ GestureEngine.onFrame((g, held) => {
     return;
   }
   hud.style.display = "flex";
-  hud.querySelector(".n").textContent = g.replace("_", " ");
+  hud.querySelector(".n").textContent = gestureName(g);
   hud.querySelector(".hb").style.width =
     Math.min(100, (held / GestureEngine.holdMs) * 100) + "%";
 });
