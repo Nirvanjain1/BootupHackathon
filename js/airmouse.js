@@ -3,8 +3,9 @@ import { GestureEngine } from "./gesture-engine.js";
 import { speakB, announce, hoverSpeak } from "./speakaloud.js";
 const ZONE = { x0: 0.2, x1: 0.8, y0: 0.15, y1: 0.75 },
   SMOOTH = 0.25,
-  PINCH_ON = 0.34,
-  PINCH_OFF = 0.5,
+  LOCK_ON = 0.45, // half pinch: lock the cursor and snap to the nearest button
+  LOCK_OFF = 0.55,
+  PINCH_ON = 0.28, // full pinch: actually click
   DWELL_MS = 1200;
 let dwell = false;
 try {
@@ -73,7 +74,8 @@ const clamp = (v) => Math.min(1, Math.max(0, v)),
   SELECTABLE = "button,a,select,input,textarea,canvas,.card,[onclick]";
 let px = innerWidth / 2,
   py = innerHeight / 2,
-  pinched = false,
+  pinched = false, // cursor locked (half or full pinch)
+  clicked = false, // full pinch already clicked during this lock
   hovered = null,
   dwellTarget = null,
   dwellStart = 0,
@@ -203,8 +205,10 @@ GestureEngine.onLandmarks((L) => {
     gone = false;
   }
   if (!cfg) {
-    px += (tx - px) * SMOOTH;
-    py += (ty - py) * SMOOTH;
+    if (!pinched) {
+      px += (tx - px) * SMOOTH;
+      py += (ty - py) * SMOOTH;
+    }
     fInit = false;
   } else if (!pinched) {
     const dt = Math.min(0.1, Math.max(0.005, (now - fLast) / 1e3));
@@ -245,10 +249,11 @@ GestureEngine.onLandmarks((L) => {
   }
   const size = Math.hypot(L[0].x - L[9].x, L[0].y - L[9].y) || 1,
     dist = Math.hypot(tip.x - thumb.x, tip.y - thumb.y) / size;
-  if (!pinched && dist < PINCH_ON) {
+  if (!pinched && dist < LOCK_ON) {
+    // half pinch: lock the cursor and snap to the nearest button. No click yet.
     pinched = true;
+    clicked = false;
     cursor.classList.add("pinched");
-    document.dispatchEvent(new CustomEvent("hw-pinch"));
     if (steadyLvl > 0) {
       const h = hist.find((e) => e.t >= now - 150);
       if (h) {
@@ -256,16 +261,21 @@ GestureEngine.onLandmarks((L) => {
         py = h.y;
       }
     }
+    if (!onGamePage()) snapToControl();
+  }
+  if (pinched && !clicked && dist < PINCH_ON) {
+    // full pinch: click once at the locked position
+    clicked = true;
+    document.dispatchEvent(new CustomEvent("hw-pinch"));
     if (onGamePage()) {
       const el = document.elementFromPoint(px, py),
         ctl = el && el.closest("button,a,select,input,.card");
       if (ctl) clickAt(px, py);
-    } else {
-      snapToControl();
-      clickAt(px, py);
-    }
-  } else if (pinched && dist > PINCH_OFF) {
+    } else clickAt(px, py);
+  }
+  if (pinched && dist > LOCK_OFF) {
     pinched = false;
+    clicked = false;
     cursor.classList.remove("pinched");
   }
   let progress = 0;

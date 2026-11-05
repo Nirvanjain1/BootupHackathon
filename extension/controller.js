@@ -5,7 +5,7 @@ import {GestureRecognizer,FilesetResolver} from './vendor/vision_bundle.mjs';
 const $=id=>document.getElementById(id),video=$('video');
 const defaults={Thumb_Up:'scrollUp',Thumb_Down:'scrollDown',Victory:'next',Open_Palm:'zoomIn',Closed_Fist:'zoomOut',ILoveYou:'read'};
 const actions={none:'No action',scrollUp:'Scroll up',scrollDown:'Scroll down',next:'Next tab',previous:'Previous tab',zoomIn:'Magnify',zoomOut:'Reduce magnification',contrast:'Toggle contrast',read:'Read aloud',stopSpeech:'Stop reading',back:'Back',forward:'Forward',media:'Play / pause video'};
-let model,stream,raf=0,running=false,paused=false,starting=false,generation=0,map={...defaults},last=null,since=0,fired=false,pinched=false,lastTime=-1,busy=false,lastSend=0;
+let halfLock=false,model,stream,raf=0,running=false,paused=false,starting=false,generation=0,map={...defaults},last=null,since=0,fired=false,pinched=false,lastTime=-1,busy=false,lastSend=0;
 const panelWindow=await chrome.windows.getCurrent();
 let activeTarget=null;
 const saved=await chrome.storage.local.get(['map','pointer','dwell','smooth','hold','size','sound','preset','preview','tutorialDone']);
@@ -22,7 +22,7 @@ let menuOpen=false,menuScanning=false,menuRequest;
 function setPaused(value){paused=!!value;reset();renderState();message({type:'stop'});message({type:'frame',hand:null,ui:{map,paused,menuOpen:paused?true:undefined}})}
 const action=a=>message({type:'action',action:a});document.querySelectorAll('[data-action]').forEach(b=>b.onclick=()=>action(b.dataset.action));
 
-function reset(){last=null;since=0;fired=false;pinched=false;pinchGate.reset();$('gesture').textContent='No hand'}
+function reset(){last=null;since=0;fired=false;pinched=false;halfLock=false;pinchGate.reset();$('gesture').textContent='No hand'}
 function stop(){generation++;running=false;starting=false;cancelAnimationFrame(raf);if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;video.srcObject=null;if(model)model.close();model=null;reset();$('start').disabled=false;$('pause').disabled=true;$('status').textContent='Camera off';$('tracking').textContent='Tracking stopped';message({type:'stop'})}
 $('stop').onclick=stop;window.addEventListener('pagehide',stop);
 $('pause').onclick=()=>setPaused(!paused);
@@ -41,7 +41,7 @@ $('start').onclick=async()=>{
     if(!L){$('tracking').textContent='Camera running · no hand detected. Show your open hand.';reset();if(now-lastSend>100){lastSend=now;await message({type:'frame',hand:null,ui:{map,paused,menuOpen:menuRequest}});menuRequest=undefined}}
     else{
      $('tracking').textContent='Hand detected · '+($('pointer').checked?'air mouse enabled':'air mouse is switched OFF');
-     const d=(a,b)=>Math.hypot(L[a].x-L[b].x,L[a].y-L[b].y),ratio=d(4,8)/(d(0,9)||1);const pinch=pinchGate.update(ratio,now);const click=pinch.click&&!paused&&!menuScanning;pinched=pinch.pinched;
+     const d=(a,b)=>Math.hypot(L[a].x-L[b].x,L[a].y-L[b].y),ratio=d(4,8)/(d(0,9)||1);const pinch=pinchGate.update(ratio,now);const click=pinch.click&&!paused&&!menuScanning;halfLock=ratio<.42||(halfLock&&ratio<.52);pinched=pinch.pinched||halfLock;
      if(now-lastSend>40||click){lastSend=now;await message({type:'frame',hand:{x:Math.max(0,Math.min(1,(1-L[8].x-.2)/.6)),y:Math.max(0,Math.min(1,(L[8].y-.15)/.6)),click,pinched,progress:pinch.progress||0},ui:{map,paused,pinched:pinched||last==='Scan_Select',menuOpen:menuRequest},pointer:$('pointer').checked&&!paused,dwell:$('dwell').checked,smooth:+$('smooth').value,size:+$('size').value})}
      menuRequest=undefined;
  const candidate=r.gestures[0]?.[0];const up=(tip,pip)=>d(tip,0)>d(pip,0)*1.1;
