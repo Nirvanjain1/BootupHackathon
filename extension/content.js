@@ -39,6 +39,24 @@ function updateHover(next){
 }
 function reset(){feedback(null,0,false);updateHover(null);cursor.style.display='none';target=null;dwellStart=0;dwellDone=false;initial=true;wasPinched=false;pinchTarget=null;clearTimeout(timer)}
 function hit(){return atPoint()?.closest(selector)}
+// Snap-to-button: when a half pinch locks the cursor, pull it to the nearest real control within 90px.
+// Skipped on game-like pages (canvas/video/embed under the cursor, a large canvas, fullscreen) so aiming is never hijacked.
+function gameLike(){const t=atPoint();if(t?.closest('canvas,video,embed,object,iframe'))return true;if(document.fullscreenElement)return true;for(const c of document.querySelectorAll('canvas')){const r=c.getBoundingClientRect();if(r.width*r.height>innerWidth*innerHeight*.35)return true}return false}
+function snapToControl(){
+ if(hit()||gameLike())return;
+ let best=null,bd=90;
+ for(const el of document.querySelectorAll(selector)){
+  if(el.disabled||el.matches('input[type="hidden"],[tabindex="-1"]')||el.closest('[hidden],[inert]'))continue;
+  const r=el.getBoundingClientRect();
+  if(r.width<4||r.height<4||r.width*r.height>innerWidth*innerHeight*.4)continue;
+  const d=Math.hypot(Math.max(r.left-x,0,x-r.right),Math.max(r.top-y,0,y-r.bottom));
+  if(d>=bd)continue;
+  const mx=r.left+r.width/2,my=r.top+r.height/2,top=document.elementFromPoint(mx,my);
+  if(!top||!(top===el||el.contains(top)))continue;
+  best={mx,my};bd=d;
+ }
+ if(best){x=best.mx;y=best.my}
+}
 function click(e){if(!e||e.disabled||e.matches('input[type="file"],select'))return false;e.focus({preventScroll:true});e.click();return true}
 function scroll(amount){let e=document.elementFromPoint(x,y);while(e&&e!==document.body){if(e.scrollHeight>e.clientHeight+2&&/(auto|scroll)/.test(getComputedStyle(e).overflowY)){const old=e.scrollTop;e.scrollTop+=amount;if(e.scrollTop!==old)return}e=e.parentElement}window.scrollBy({top:amount,behavior:'smooth'})}
 chrome.runtime.onMessage.addListener((m,s,reply)=>{
@@ -50,6 +68,7 @@ chrome.runtime.onMessage.addListener((m,s,reply)=>{
    if(!host.isConnected)document.documentElement.append(host);
    if(!m.hand||!m.pointer){reset();reply({ok:true,menuOpen:globalThis.HandWaveMenu?.open,scanning:globalThis.HandWaveMenu?.scanning});return}
    currentSize=Number(m.size)||60;let clicked=false;const h=m.hand,k=Math.max(.08,Math.min(.6,m.smooth||.24));if(initial){x=h.x*(innerWidth-1);y=h.y*(innerHeight-1);initial=false}else if(!h.pinched){x+=(h.x*(innerWidth-1)-x)*k;y+=(h.y*(innerHeight-1)-y)*k}
+   if(h.pinched&&!wasPinched&&!m.dwell)snapToControl();
    cursor.style.display='block';cursor.style.left=x+'px';cursor.style.top=y+'px';clearTimeout(timer);timer=setTimeout(reset,m.test?4000:1500);
    updateHover(atPoint());
    const e=hit(),now=performance.now();if(e!==target||Math.hypot(x-dwellX,y-dwellY)>14){target=e;dwellStart=now;dwellDone=false;dwellX=x;dwellY=y}

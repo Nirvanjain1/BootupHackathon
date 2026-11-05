@@ -138,6 +138,39 @@ let cx = px,
   cursor.style.transform =
     "translate3d(" + cx.toFixed(1) + "px," + cy.toFixed(1) + "px,0)";
 })(performance.now());
+// Snap-to-button: when the half pinch locks the cursor, pull it to the nearest
+// real control within SNAP_R pixels. Only used for deliberate UI clicking:
+// never during the listening game, and never when the cursor is over a canvas
+// (PDF page), so it cannot hijack aiming.
+const SNAP_SEL =
+    "button,a[href],input:not([type=hidden]),select,textarea,[role=button],.card,[onclick]",
+  SNAP_R = 90;
+function snapToControl() {
+  const here = document.elementFromPoint(px, py);
+  if (here && (here.closest(SNAP_SEL) || here.closest("canvas"))) return;
+  let best = null,
+    bd = SNAP_R;
+  document.querySelectorAll(SNAP_SEL).forEach((el) => {
+    if (el.disabled || el.closest("[hidden],[inert]")) return;
+    const r = el.getBoundingClientRect();
+    if (r.width < 4 || r.height < 4 || r.width * r.height > innerWidth * innerHeight * 0.4) return;
+    const d = Math.hypot(
+      Math.max(r.left - px, 0, px - r.right),
+      Math.max(r.top - py, 0, py - r.bottom),
+    );
+    if (d >= bd) return;
+    const mx = r.left + r.width / 2,
+      my = r.top + r.height / 2,
+      top = document.elementFromPoint(mx, my);
+    if (!top || !(top === el || el.contains(top))) return; // hidden or covered
+    best = { el, mx, my };
+    bd = d;
+  });
+  if (best) {
+    px = best.mx;
+    py = best.my;
+  }
+}
 function clickAt(x, y) {
   const el = document.elementFromPoint(x, y);
   if (!el) return;
@@ -227,7 +260,10 @@ GestureEngine.onLandmarks((L) => {
       const el = document.elementFromPoint(px, py),
         ctl = el && el.closest("button,a,select,input,.card");
       if (ctl) clickAt(px, py);
-    } else clickAt(px, py);
+    } else {
+      snapToControl();
+      clickAt(px, py);
+    }
   } else if (pinched && dist > PINCH_OFF) {
     pinched = false;
     cursor.classList.remove("pinched");
