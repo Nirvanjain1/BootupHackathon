@@ -11,7 +11,7 @@ async function send(id,message){
 }
 chrome.tabs.onActivated.addListener(()=>chrome.tts.stop());
 chrome.runtime.onMessage.addListener((m,sender,reply)=>{
- if(sender.id!==chrome.runtime.id||m.type==='panelControl')return;
+ if(sender.id!==chrome.runtime.id||m.type==='panelControl'||m.type==='cameraSetupGranted')return;
  (async()=>{
   if(m.type==='pageControl'&&sender.tab){
  const [active]=await chrome.tabs.query({active:true,windowId:sender.tab.windowId});if(active?.id!==sender.tab.id)throw Error('Select this tab first.');
